@@ -44,8 +44,8 @@ def _parse_arguments(desc, args):
                              'logging.config.html#logging-config-fileformat '
                              'Setting this overrides -v parameter which uses '
                              ' default logger. (default None)')
-    parser.add_argument('--writeasedgelist', action='store_true',
-                        help='If set, output edge lists')
+    parser.add_argument('--writecx', action='store_true',
+                        help='If set, output cx')
     parser.add_argument('--verbose', '-v', action='count', default=0,
                         help='Increases verbosity of logger to standard '
                              'error for log messages in this module '
@@ -263,16 +263,34 @@ def run(theargs, nice_cx_fac=None,
     for netxsubnet in graphgenerator.get_next_subgraph():
         logger.info('Generated graph density: ' +
                     str(networkx.classes.function.density(netxsubnet)))
+        if theargs.writecx is True:
+            _write_cx(nicecxconvertor, netxsubnet, theargs.outdir, counter)
 
-        nicecx = nicecxconvertor.get_nice_cx_network(netxsubnet)
-        num_nodes = len(nicecx.get_nodes())
-        nicecx.set_name(str(counter) + ' - ' + str(num_nodes) +
-                        ' node subgraph of ' +
-                        str(nicecx.get_name()))
-        with open(os.path.join(theargs.outdir, str(counter) + '.cx'), 'w') as f:
-            json.dump(nicecx.to_cx(), f)
+        logger.info('Writing edge list ' + str(counter))
+        edgelistfile = os.path.join(theargs.outdir,
+                                    str(counter) + '.tsv')
+        networkx.readwrite.edgelist.write_edgelist(netxsubnet,
+                                                   edgelistfile,
+                                                   delimiter='\t', data=False)
         counter += 1
 
+
+def _write_cx(converter, netx_graph, outdir, counter):
+    """
+
+    :param self:
+    :param outdir:
+    :param counter:
+    :param nicecx:
+    :return:
+    """
+    nicecx = converter.get_nice_cx_network(netx_graph)
+    num_nodes = len(nicecx.get_nodes())
+    nicecx.set_name(str(counter) + ' - ' + str(num_nodes) +
+                    ' node subgraph of ' +
+                    str(nicecx.get_name()))
+    with open(os.path.join(outdir, str(counter) + '.cx'), 'w') as f:
+        json.dump(nicecx.to_cx(), f)
 
 def main(args):
     """
