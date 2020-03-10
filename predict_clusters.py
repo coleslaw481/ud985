@@ -10,7 +10,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-import matplotlib.pyplot as plt
+
 
 
 TRAIN = 'train'
@@ -41,6 +41,10 @@ def _parse_arguments(desc, args):
                              'logging.config.html#logging-config-fileformat '
                              'Setting this overrides -v parameter which uses '
                              ' default logger. (default None)')
+    parser.add_argument('--plotgraphs', action='store_true',
+                        help='If set, uses matplotlib to plot graphs')
+    parser.add_argument('--matplotlibgui', default='Qt4Agg',
+                        help='Library to use for plotting')
     parser.add_argument('--num_epochs', type=int, default=50,
                         help='Number epochs')
     parser.add_argument('--learning_rate', type=float, default=0.01,
@@ -88,13 +92,16 @@ class TestNet(nn.Module):
 
     def __init__(self):
         super(TestNet, self).__init__()
-        self.fc1 = nn.Linear(7, 12)
-        self.fc2 = nn.Linear(12, 1)
+        self.fc1 = nn.Linear(7, 14)
+        self.fc2 = nn.Linear(14, 7)
+        self.fc3 = nn.Linear(7, 1)
 
     def forward(self, x):
         x = self.fc1(x)
         x = torch.sigmoid(x)
         x = self.fc2(x)
+        x = torch.sigmoid(x)
+        x = self.fc3(x)
         return x
 
 
@@ -114,14 +121,17 @@ def train_net(theargs, net, trainloader, validloader):
     :param net:
     :return:
     """
-
+    loss_values = []
     loss_function = nn.SmoothL1Loss()
     optimizer = optim.SGD(net.parameters(), lr=theargs.learning_rate,
                           weight_decay=theargs.weight_decay,
                           momentum=theargs.momentum, nesterov=True)
+    epoch_losses = []
+    valid_losses = []
     for epoch in range(1, theargs.num_epochs):
         train_loss = []
         valid_loss = []
+
         net.train()
         for data, target in trainloader:
             output = net(data)
@@ -130,14 +140,37 @@ def train_net(theargs, net, trainloader, validloader):
             optimizer.step()
             train_loss.append(loss.item())
 
-    ## evaluation part
-    net.eval()
-    for data, target in validloader:
-        output = net(data)
-        loss = loss_function(output, target)
-        valid_loss.append(loss.item())
-    logger.info('Epoch: ' + str(epoch) + ' Training Loss: ' +
-                str(np.mean(train_loss)) + 'Valid Loss: ' + str(np.mean(valid_loss)))
+        epoch_losses.append(np.mean(train_loss))
+        # evaluation part
+        net.eval()
+
+        for data, target in validloader:
+            output = net(data)
+            loss = loss_function(output, target)
+            valid_loss.append(loss.item())
+
+        valid_losses.append(np.mean(valid_loss))
+    if theargs.plotgraphs:
+        plotgraphs(theargs, epoch_losses, valid_losses)
+
+
+def plotgraphs(theargs, epoch_losses, valid_losses):
+    """
+
+    :param epoch_losses:
+    :param valid_losses:
+    :return:
+    """
+    import matplotlib
+    matplotlib.use(theargs.matplotlibgui)
+    import matplotlib.pyplot as plt
+    plt.plot(epoch_losses, color='green', marker='o', linestyle='solid')
+    plt.plot(valid_losses, color='red', marker='o', linestyle='solid')
+
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.title('Training & Validation Loss')
+    plt.show()
 
 
 class PredictClusterData(torch.utils.data.Dataset):
