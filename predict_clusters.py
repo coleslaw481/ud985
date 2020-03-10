@@ -165,7 +165,7 @@ def plotgraphs(theargs, epoch_losses, valid_losses):
     matplotlib.use(theargs.matplotlibgui)
     import matplotlib.pyplot as plt
     plt.plot(epoch_losses, color='green', marker='o', linestyle='solid')
-    plt.plot(valid_losses, color='red', marker='o', linestyle='solid')
+    plt.plot(valid_losses, color='red', marker='x', linestyle='solid')
 
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
