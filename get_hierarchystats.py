@@ -169,15 +169,15 @@ def run(theargs, clustercounter=None, networkstats=None):
 
     result = list()
     result.append(basedirname + '.' + resfilename)
-    result.append(str(count))
     result.append(str(net_stats['nodes']))
     result.append(str(net_stats['edges']))
     result.append(str(net_stats['density']))
     result.append(str(net_stats['degree_mean']))
     result.append(str(net_stats['degree_stddev']))
+    result.append(str(count))
 
     if theargs.includeheader:
-        sys.stdout.write('Name,Clusters,Nodes,Edges,Density,DegreeMean,DegreeStddev\n')
+        sys.stdout.write('Name,Nodes,Edges,Density,DegreeMean,DegreeStddev,Clusters\n')
     sys.stdout.write(','.join(result) + '\n')
     sys.stdout.flush()
     return 0

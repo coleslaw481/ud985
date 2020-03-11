@@ -81,9 +81,9 @@ def run(theargs):
     df = pandas.read_csv(theargs.csvfile, delimiter=',',
                          header=None)
     # sort by number of nodes then by number of edges
-    df.sort_values(by=[2, 3], inplace=True)
+    df.sort_values(by=[1, 2], inplace=True)
     print(df.head())
-    ax = df.plot(kind='scatter', x=2, y=1, color='red')
+    ax = df.plot(kind='scatter', x=1, y=6, color='red')
     ax.set_xlabel('# of Nodes')
     ax.set_ylabel('# of clusters')
     plt.show(block=False)
@@ -91,7 +91,7 @@ def run(theargs):
     # sort by number of edges then by number of nodes
     df.sort_values(by=[3, 2], inplace=True)
     print(df.head())
-    ax = df.plot(kind='scatter', x=3, y=1, color='green')
+    ax = df.plot(kind='scatter', x=2, y=6, color='green')
     ax.set_xlabel('# of Edges')
     ax.set_ylabel('# of clusters')
     plt.title('hi')
@@ -100,11 +100,10 @@ def run(theargs):
     # sort by density
     df.sort_values(by=[4,1], inplace=True)
     print(df.head())
-    ax = df.plot(kind='scatter', x=4, y=1, color='blue')
+    ax = df.plot(kind='scatter', x=3, y=6, color='blue')
     ax.set_xlabel('Density')
     ax.set_ylabel('# of clusters')
     plt.show(block=True)
-
 
     return 0
 
