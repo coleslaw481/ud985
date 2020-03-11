@@ -8,9 +8,7 @@ import logging
 import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
-
 
 
 TRAIN = 'train'
@@ -92,9 +90,9 @@ class TestNet(nn.Module):
 
     def __init__(self):
         super(TestNet, self).__init__()
-        self.fc1 = nn.Linear(7, 14)
-        self.fc2 = nn.Linear(14, 7)
-        self.fc3 = nn.Linear(7, 1)
+        self.fc1 = nn.Linear(6, 12)
+        self.fc2 = nn.Linear(12, 6)
+        self.fc3 = nn.Linear(6, 1)
 
     def forward(self, x):
         x = self.fc1(x)
@@ -116,10 +114,16 @@ def predict(net):
 
 def train_net(theargs, net, trainloader, validloader):
     """
+    Trains network
 
-    :param theargs:
-    :param net:
-    :return:
+    :param theargs: command line arguments from :py:class:`Argparse`
+    :param net: network to use for training
+    :type net: :py:class:`torch.nn.Module`
+    :param trainloader: training dataloader
+    :type trainloader: :py:class:`torch.utils.data.DataLoader`
+    :param validloader: validation dataloader
+    :type validloader: :py:class:`torch.utils.data.DataLoader`
+    :return: None
     """
     loss_values = []
     loss_function = nn.SmoothL1Loss()
@@ -178,7 +182,7 @@ class PredictClusterData(torch.utils.data.Dataset):
     hi
     """
     def __init__(self):
-        self._data = torch.randn(240, dtype=torch.float32).view(30, 8)
+        self._data = torch.randn(210, dtype=torch.float32).view(30, 7)
 
     def __len__(self):
         return len(self._data)
