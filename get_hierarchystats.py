@@ -2,10 +2,9 @@
 
 import os
 import sys
-import json
-import random
 import argparse
 import logging
+import networkx
 
 
 logger = logging.getLogger(__name__)
@@ -25,7 +24,10 @@ def _parse_arguments(desc, args):
     help_fm = argparse.RawDescriptionHelpFormatter
     parser = argparse.ArgumentParser(description=desc,
                                      formatter_class=help_fm)
-    parser.add_argument('input', help='Input CDRESULT file')
+    parser.add_argument('tsvfile', help='Input TSV file')
+    parser.add_argument('cdresult', help='Input CDRESULT file')
+    parser.add_argument('--includeheader', action='store_true',
+                        help='If set, output header line')
     parser.add_argument('--logconf', default=None,
                         help='Path to python logging configuration file in '
                              'this format: https://docs.python.org/3/library/'
@@ -67,6 +69,33 @@ def _setup_logging(args):
                               disable_existing_loggers=False)
 
 
+class NetworkStatsGenerator(object):
+    """
+
+    """
+    def __init__(self):
+        """
+        constructor
+        """
+        pass
+
+    def get_network_stats(self, input_stream):
+        """
+        Gets network stats from TSV passed in as stream
+        :param input_stream: TSV passed in as stream
+        :type input_stream: stream
+        :return: stats as a dict
+        :rtype: dict
+        """
+        graph = networkx.read_edgelist(input_stream)
+        net_stats = dict()
+        net_stats['nodes'] = len(graph)
+        net_stats['edges'] = graph.number_of_edges()
+        net_stats['density'] = networkx.classes.function.density(graph)
+
+        return net_stats
+
+
 class ClusterCounter(object):
     """
 
@@ -96,7 +125,7 @@ class ClusterCounter(object):
         return len(clusterset)
 
 
-def run(theargs, clustercounter=None):
+def run(theargs, clustercounter=None, networkstats=None):
     """
     Main flow of processing
 
@@ -106,12 +135,31 @@ def run(theargs, clustercounter=None):
     if clustercounter is None:
         clustercounter = ClusterCounter()
 
-    with open(theargs.input, 'r') as f:
+    if networkstats is None:
+        networkstats = NetworkStatsGenerator()
+
+    with open(theargs.cdresult, 'r') as f:
         count = clustercounter.get_cluster_count(f)
-        sys.stdout.write(str(count) + '\n')
-        sys.stdout.flush()
-        return 0
-    return 1
+
+    with open(theargs.tsvfile, 'rb') as f:
+        net_stats = networkstats.get_network_stats(f)
+
+    resfilename = os.path.basename(theargs.cdresult)
+    basedir = os.path.dirname(theargs.cdresult)
+    basedirname = os.path.basename(basedir)
+
+    result = list()
+    result.append(basedirname + '.' + resfilename)
+    result.append(str(count))
+    result.append(str(net_stats['nodes']))
+    result.append(str(net_stats['edges']))
+    result.append(str(net_stats['density']))
+
+    if theargs.includeheader:
+        sys.stdout.write('Name,Clusters,Nodes,Edges,Density\n')
+    sys.stdout.write(','.join(result) + '\n')
+    sys.stdout.flush()
+    return 0
 
 
 def main(args):
