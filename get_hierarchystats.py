@@ -5,6 +5,7 @@ import sys
 import argparse
 import logging
 import networkx
+import numpy as np
 
 
 logger = logging.getLogger(__name__)
@@ -79,6 +80,21 @@ class NetworkStatsGenerator(object):
         """
         pass
 
+    def _get_degree_stats(self, graph):
+        """
+        Gets average degree for all nodes and stddev
+        :param graph:
+        :return:
+        """
+        degree_values = []
+        for anode in graph.degree():
+            degree_values.append(anode[1])
+        np_degrees = np.asarray(degree_values)
+        degree_dict = dict()
+        degree_dict['mean'] = np.mean(np_degrees)
+        degree_dict['stddev'] = np.std(np_degrees)
+        return degree_dict
+
     def get_network_stats(self, input_stream):
         """
         Gets network stats from TSV passed in as stream
@@ -93,6 +109,9 @@ class NetworkStatsGenerator(object):
         net_stats['edges'] = graph.number_of_edges()
         net_stats['density'] = networkx.classes.function.density(graph)
 
+        degree_dict = self._get_degree_stats(graph)
+        net_stats['degree_mean'] = degree_dict['mean']
+        net_stats['degree_stddev'] = degree_dict['stddev']
         return net_stats
 
 
@@ -154,9 +173,11 @@ def run(theargs, clustercounter=None, networkstats=None):
     result.append(str(net_stats['nodes']))
     result.append(str(net_stats['edges']))
     result.append(str(net_stats['density']))
+    result.append(str(net_stats['degree_mean']))
+    result.append(str(net_stats['degree_stddev']))
 
     if theargs.includeheader:
-        sys.stdout.write('Name,Clusters,Nodes,Edges,Density\n')
+        sys.stdout.write('Name,Clusters,Nodes,Edges,Density,DegreeMean,DegreeStddev\n')
     sys.stdout.write(','.join(result) + '\n')
     sys.stdout.flush()
     return 0
