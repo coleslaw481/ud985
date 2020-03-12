@@ -6,6 +6,7 @@ import sys
 import argparse
 import logging
 import numpy as np
+import pandas
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -31,8 +32,15 @@ def _parse_arguments(desc, args):
     help_fm = argparse.RawDescriptionHelpFormatter
     parser = argparse.ArgumentParser(description=desc,
                                      formatter_class=help_fm)
-    parser.add_argument('input', help='Input CDRESULT file')
-    parser.add_argument('--mode', choices=[TRAIN, PREDICT])
+    parser.add_argument('mode', choices=[TRAIN, PREDICT],
+                        help='Denotes which mode to run in')
+    parser.add_argument('--traindata', help='Path to training '
+                                            'dataset (only needed if '
+                                            '<mode> is ' + TRAIN + ')')
+    parser.add_argument('--validationdata',
+                        help='Path to validation '
+                             'dataset (only needed if '
+                             '<mode> is ' + TRAIN + ')')
     parser.add_argument('--logconf', default=None,
                         help='Path to python logging configuration file in '
                              'this format: https://docs.python.org/3/library/'
@@ -45,6 +53,8 @@ def _parse_arguments(desc, args):
                         help='Library to use for plotting')
     parser.add_argument('--num_epochs', type=int, default=50,
                         help='Number epochs')
+    parser.add_argument('--batchsize', type=int, default=64,
+                        help='Batch size')
     parser.add_argument('--learning_rate', type=float, default=0.01,
                         help='Learning rate')
     parser.add_argument('--weight_decay', type=float, default=1e-6,
@@ -90,9 +100,9 @@ class TestNet(nn.Module):
 
     def __init__(self):
         super(TestNet, self).__init__()
-        self.fc1 = nn.Linear(6, 12)
-        self.fc2 = nn.Linear(12, 6)
-        self.fc3 = nn.Linear(6, 1)
+        self.fc1 = nn.Linear(5, 10)
+        self.fc2 = nn.Linear(10, 5)
+        self.fc3 = nn.Linear(5, 1)
 
     def forward(self, x):
         x = self.fc1(x)
@@ -125,7 +135,6 @@ def train_net(theargs, net, trainloader, validloader):
     :type validloader: :py:class:`torch.utils.data.DataLoader`
     :return: None
     """
-    loss_values = []
     loss_function = nn.SmoothL1Loss()
     optimizer = optim.SGD(net.parameters(), lr=theargs.learning_rate,
                           weight_decay=theargs.weight_decay,
@@ -136,6 +145,7 @@ def train_net(theargs, net, trainloader, validloader):
         train_loss = []
         valid_loss = []
 
+        # training phase
         net.train()
         for data, target in trainloader:
             output = net(data)
@@ -145,15 +155,17 @@ def train_net(theargs, net, trainloader, validloader):
             train_loss.append(loss.item())
 
         epoch_losses.append(np.mean(train_loss))
-        # evaluation part
-        net.eval()
 
+        # evaluation phase
+        net.eval()
         for data, target in validloader:
             output = net(data)
             loss = loss_function(output, target)
             valid_loss.append(loss.item())
 
         valid_losses.append(np.mean(valid_loss))
+
+    # plot training/validation loss
     if theargs.plotgraphs:
         plotgraphs(theargs, epoch_losses, valid_losses)
 
@@ -181,8 +193,13 @@ class PredictClusterData(torch.utils.data.Dataset):
     """
     hi
     """
-    def __init__(self):
-        self._data = torch.randn(210, dtype=torch.float32).view(30, 7)
+    def __init__(self, inputfile):
+        df = pandas.read_csv(inputfile, delimiter=',', header=None)
+        print(df.head())
+        del df[0]
+        df.reset_index(drop=True, inplace=True)
+        print(df.head())
+        self._data = torch.Tensor(np.array(df))
 
     def __len__(self):
         return len(self._data)
@@ -200,8 +217,10 @@ def run(theargs):
     :param theargs:
     :return:
     """
-    trainloader = torch.utils.data.DataLoader(PredictClusterData(), batch_size=10)
-    validloader = torch.utils.data.DataLoader(PredictClusterData(), batch_size=10)
+    trainloader = torch.utils.data.DataLoader(PredictClusterData(theargs.traindata),
+                                              batch_size=theargs.batchsize)
+    validloader = torch.utils.data.DataLoader(PredictClusterData(theargs.validationdata),
+                                              batch_size=theargs.batchsize)
     net = TestNet()
     if theargs.mode == TRAIN:
         train_net(theargs, net, trainloader, validloader)
