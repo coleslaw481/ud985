@@ -53,9 +53,9 @@ def _parse_arguments(desc, args):
                         help='Library to use for plotting')
     parser.add_argument('--num_epochs', type=int, default=50,
                         help='Number epochs')
-    parser.add_argument('--batchsize', type=int, default=64,
+    parser.add_argument('--batchsize', type=int, default=16,
                         help='Batch size')
-    parser.add_argument('--learning_rate', type=float, default=0.01,
+    parser.add_argument('--learning_rate', type=float, default=0.0001,
                         help='Learning rate')
     parser.add_argument('--weight_decay', type=float, default=1e-6,
                         help='Weight decay')
@@ -100,9 +100,9 @@ class TestNet(nn.Module):
 
     def __init__(self):
         super(TestNet, self).__init__()
-        self.fc1 = nn.Linear(5, 10)
-        self.fc2 = nn.Linear(10, 5)
-        self.fc3 = nn.Linear(5, 1)
+        self.fc1 = nn.Linear(4, 8)
+        self.fc2 = nn.Linear(8, 4)
+        self.fc3 = nn.Linear(4, 1)
 
     def forward(self, x):
         x = self.fc1(x)
@@ -144,6 +144,13 @@ def train_net(theargs, net, trainloader, validloader):
     for epoch in range(1, theargs.num_epochs):
         train_loss = []
         valid_loss = []
+        if len(epoch_losses) == 0:
+            tl = 'NA'
+        else:
+            tl = epoch_losses[-1]
+        logger.debug('Running epoch: ' +
+                     str(epoch) + ' of ' +
+                     str(theargs.num_epochs) + ' train loss: ' + str(tl))
 
         # training phase
         net.train()
@@ -185,28 +192,64 @@ def plotgraphs(theargs, epoch_losses, valid_losses):
 
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
-    plt.title('Training & Validation Loss')
+    plt.title('Green is train loss and red is validation loss')
     plt.show()
 
 
 class PredictClusterData(torch.utils.data.Dataset):
     """
-    hi
+    Creates a normalized predict cluster dataset
     """
+
     def __init__(self, inputfile):
-        df = pandas.read_csv(inputfile, delimiter=',', header=None)
-        print(df.head())
+        """
+        Constructor that processes `inputfile` data into normalized
+        dataset
+
+        :param inputfile: Path to CSV file containing predictcluster data
+        :type inputfile: str
+        """
+        df = self._load_data(inputfile)
+
+        self._normalize_data(df)
+
+        self._data = torch.Tensor(np.array(df))
+
+    def _load_data(self, inputfile):
+        """
+        Loads the data
+        :param inputfile:
+        :return: pandas data frame
+        """
+        return pandas.read_csv(inputfile, delimiter=',', header=None)
+
+    def _normalize_data(self, df):
+        """
+
+        :param df:
+        :return:
+        """
         del df[0]
         df.reset_index(drop=True, inplace=True)
-        print(df.head())
-        self._data = torch.Tensor(np.array(df))
+
+        # set edges to num edges / num nodes^2
+        df[2] = (df[2] / (df[1] * df[1]))
+
+        # set number of clusters to num clusters / num nodes
+        df[6] = (df[6] / df[1])
+
+        # set degree mean to degree mean / num nodes
+        df[4] = (df[4] / df[1])
+
+        del df[1]
+        df.reset_index(drop=True, inplace=True)
 
     def __len__(self):
         return len(self._data)
 
     def __getitem__(self, index):
-        target = self._data[index][-1]
-        data_val = self._data[index][:-1]
+        target = self._data[index][-1].view(1)
+        data_val = self._data[index][:-1].view(4)
         return data_val, target
 
 
