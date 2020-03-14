@@ -80,31 +80,56 @@ def run(theargs):
     matplotlib.use(theargs.matplotlibgui)
     df = pandas.read_csv(theargs.csvfile, delimiter=',',
                          header=None)
-    # sort by number of nodes then by number of edges
-    df.sort_values(by=[1, 2], inplace=True)
-    print(df.head())
+    csvfilename = os.path.basename(theargs.csvfile)
+    # nodes vs number clusters
     ax = df.plot(kind='scatter', x=1, y=6, color='red')
     ax.set_xlabel('# of Nodes')
     ax.set_ylabel('# of clusters')
+    plt.title(csvfilename + '# of nodes')
+    ax.legend()
     plt.show(block=False)
 
-    # sort by number of edges then by number of nodes
-    df.sort_values(by=[3, 2], inplace=True)
-    print(df.head())
+    # edges vs number clusters
     ax = df.plot(kind='scatter', x=2, y=6, color='green')
-    ax.set_xlabel('# of Edges')
+    ax.set_xlabel('# of edges')
     ax.set_ylabel('# of clusters')
-    plt.title('hi')
+    plt.title(csvfilename + ' # of edges')
+    ax.legend()
     plt.show(block=False)
 
-    # sort by density
-    df.sort_values(by=[4,1], inplace=True)
-    print(df.head())
+    # density vs number clusters
     ax = df.plot(kind='scatter', x=3, y=6, color='blue')
     ax.set_xlabel('Density')
     ax.set_ylabel('# of clusters')
-    plt.show(block=True)
+    plt.title(csvfilename + ' density')
+    ax.legend()
+    plt.show(block=False)
 
+    # DegreeMean vs number clusters
+    print(df.head())
+    ax = df.plot(kind='scatter', x=4, y=6, color='yellow', label='DegreeMean')
+    ax.set_xlabel('DegreeMean')
+    ax.set_ylabel('# of clusters')
+    plt.title(csvfilename + 'degreeMean')
+    ax.legend()
+    plt.show(block=False)
+
+    # number nodes vs number edges
+    print(df.head())
+    ax = df.plot(kind='scatter', x=1, y=2, color='pink')
+    ax.set_xlabel('# of nodes')
+    ax.set_ylabel('# of edges')
+    plt.title(csvfilename + '# nodes vs # edges')
+    ax.legend()
+    plt.show(block=False)
+
+    # Degree Stddev vs number clusters
+    ax = df.plot(kind='scatter', x=5, y=6, color='orange')
+    ax.set_xlabel('DegreeStddev')
+    ax.set_ylabel('# of clusters')
+    plt.title(csvfilename + ' degreeStddev')
+    ax.legend()
+    plt.show(block=True)
     return 0
 
 
