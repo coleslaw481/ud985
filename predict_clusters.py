@@ -32,8 +32,10 @@ def _parse_arguments(desc, args):
     help_fm = argparse.RawDescriptionHelpFormatter
     parser = argparse.ArgumentParser(description=desc,
                                      formatter_class=help_fm)
-    parser.add_argument('mode', choices=[TRAIN, PREDICT],
+    parser.add_argument('--mode', choices=[TRAIN, PREDICT], required=True,
                         help='Denotes which mode to run in')
+    parser.add_argument('--model',
+                        help='The model to use for prediction')
     parser.add_argument('--traindata', help='Path to training '
                                             'dataset (only needed if '
                                             '<mode> is ' + TRAIN + ')')
@@ -51,11 +53,14 @@ def _parse_arguments(desc, args):
                         help='If set, uses matplotlib to plot graphs')
     parser.add_argument('--matplotlibgui', default='Qt4Agg',
                         help='Library to use for plotting')
+    parser.add_argument('--usecpu', action='store_true',
+                        help='If set, use CPU instead of '
+                             'first visible GPU')
     parser.add_argument('--num_epochs', type=int, default=50,
                         help='Number epochs')
     parser.add_argument('--batchsize', type=int, default=16,
                         help='Batch size')
-    parser.add_argument('--learning_rate', type=float, default=0.0001,
+    parser.add_argument('--learning_rate', type=float, default=0.01,
                         help='Learning rate')
     parser.add_argument('--weight_decay', type=float, default=1e-6,
                         help='Weight decay')
@@ -106,9 +111,9 @@ class TestNet(nn.Module):
 
     def forward(self, x):
         x = self.fc1(x)
-        x = torch.sigmoid(x)
+        x = torch.relu(x)
         x = self.fc2(x)
-        x = torch.sigmoid(x)
+        x = torch.relu(x)
         x = self.fc3(x)
         return x
 
@@ -120,6 +125,20 @@ def predict(net):
     :return:
     """
     pass
+
+
+def get_device(theargs):
+    """
+    Examines theargs.usecpu if set then device is cpu
+    otherwise it is in the first available GPU device
+    if CUDA is available
+    :param theargs:
+    :return:
+    """
+    if theargs.usecpu:
+        return torch.device('cpu')
+
+    return torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
 
 def train_net(theargs, net, trainloader, validloader):
@@ -135,6 +154,8 @@ def train_net(theargs, net, trainloader, validloader):
     :type validloader: :py:class:`torch.utils.data.DataLoader`
     :return: None
     """
+    device = get_device(theargs)
+    net.to(device)
     loss_function = nn.SmoothL1Loss()
     optimizer = optim.SGD(net.parameters(), lr=theargs.learning_rate,
                           weight_decay=theargs.weight_decay,
@@ -154,7 +175,10 @@ def train_net(theargs, net, trainloader, validloader):
 
         # training phase
         net.train()
-        for data, target in trainloader:
+        for data_raw, target_raw in trainloader:
+            data = data_raw.to(device)
+            target = target_raw.to(device)
+            optimizer.zero_grad()
             output = net(data)
             loss = loss_function(output, target)
             loss.backward()
