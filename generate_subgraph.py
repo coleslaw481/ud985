@@ -35,9 +35,7 @@ def _parse_arguments(desc, args):
     parser.add_argument('--numnetworks', type=int, default=1,
                         help='Number of networks to generate')
     parser.add_argument('--numnodes', type=int,
-                        help='# of nodes subgraph should have, if unset'
-                             'code relies on --minnodes, --maxnodes and'
-                             'randomly selects a value')
+                        help='# of nodes randomly picked from parent graph')
     parser.add_argument('--logconf', default=None,
                         help='Path to python logging configuration file in '
                              'this format: https://docs.python.org/3/library/'
