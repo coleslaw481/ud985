@@ -129,7 +129,27 @@ def run(theargs):
     ax.set_ylabel('# of clusters')
     plt.title(csvfilename + ' degreeStddev')
     ax.legend()
+    plt.show(block=False)
+
+    hist = df.hist(column=[1, 2, 3, 4, 5, 6])
+    print(len(hist))
+    hist[0][0].title.set_text('# nodes histogram')
+    # hist[0][0].set_xlabel('# nodes')
+    print(hist[0][0])
+
+    # hist[0][1].set_xlabel('# edges')
+    hist[0][1].title.set_text('# edges histogram')
+    # hist[1][0].set_xlabel('Density')
+    hist[1][0].title.set_text('Density histogram')
+    # hist[1][1].set_xlabel('Degree Mean')
+    hist[1][1].title.set_text('Degree mean histogram')
+    # hist[2][0].set_xlabel('# Degree Stddev')
+    hist[2][0].title.set_text('Degree stddev histogram')
+    # hist[2][1].set_xlabel('# clusters')
+    hist[2][1].title.set_text('# clusters histogram')
+
     plt.show(block=True)
+
     return 0
 
 
