@@ -6,6 +6,7 @@ import json
 import random
 import argparse
 import logging
+import csv
 import ndex2
 from ndex2.nice_cx_network import DefaultNetworkXFactory
 from ndex2.nice_cx_network import NiceCXNetwork
@@ -32,6 +33,22 @@ def _parse_arguments(desc, args):
     parser.add_argument('inputcx', help='Input CX file')
     parser.add_argument('outdir', help='Directory where output CX files'
                                        ' will be written.')
+    parser.add_argument('--gmtfile', help='If set, generate graphs'
+                                          'using GO term genes. This '
+                                          'assumes a file'
+                                          'from sigdb like this one is '
+                                          'used: https://www.gsea-msigdb'
+                                          '.org/gsea/msigdb/download_file'
+                                          '.jsp?filePath=/msigdb/release/'
+                                          '7.0/c5.all.v7.0.symbols.gmt '
+                                          'Note: currently this ignores'
+                                          '--numnetworks and --numnodes '
+                                          'parameters')
+    parser.add_argument('--mingotermcutoff', type=int,
+                        default=30,
+                        help='Minimum number of nodes subgraph must '
+                             'have to be generated. Only used '
+                             'in go term mode ie --gmtfile set')
     parser.add_argument('--numnetworks', type=int, default=1,
                         help='Number of networks to generate')
     parser.add_argument('--numnodes', type=int,
@@ -198,23 +215,31 @@ class NetworkxToNiceCXConverter(object):
 
 class SubGraphGenerator(object):
     """
-    Generates sub graphs
+    Generates sub graphs in generator function :py:func:`~get_next_subgraph~
     """
-    def __init__(self, netx_network, numnetworks=None, numnodes=None,
-                 seed=None):
+    def __init__(self, netx_network, numnetworks=None, numnodes=None):
         """
         Constructor
+
+        :param netx_network: Network used to generate subgraphs
+        :type netx_network: :py:class:`networkx.Graph`
+        :param numnetworks: Number of networks to generate
+        :type numnetworks: int
+        :param numnodes:
+        :type numnodes: int
         """
         self._netx = netx_network
         self._numnetworks = numnetworks
         self._numnodes = numnodes
-        self._seed = seed
 
     def get_next_subgraph(self):
         """
+        Generator function that creates a subgraph from the `netx_network`
+        passed in the constructor by randomly selecting nodes and creating
+        a graph using original edges
 
-        :param netx_network:
-        :return:
+        :return: subgraph of random nodes with edges from parent network passed
+                 in constructor
         :rtype: :py:class:`~networkx.Graph`
         """
         nodelist = list(self._netx.nodes)
@@ -230,6 +255,112 @@ class SubGraphGenerator(object):
                 continue
             counter += 1
             yield unfrozen_copy_of_subgraph
+
+
+class GoSubGraphGenerator(object):
+    """
+    Generates sub graphs from network passed into constructor
+    that contain genes from the go terms passed in
+    """
+    def __init__(self, netx_network, gmtfile=None,
+                 mincutoff=30):
+        """
+        Constructor
+
+        :param netx_network: networkx network
+        :param netx_network: :py:class:`networkx.Graph`
+        :param gmtfile: GMT file of go terms in tsv format
+                        <GO NAME> <URL> <GENE1> <GENE2>
+        :param gmtfile: str
+        :param mincutoff: only keep network if after isolate
+                          removal there remains this many nodes
+        :type mincutoff: int
+        """
+        self._netx = netx_network
+        self._gmtfile = gmtfile
+        self._mincutoff = mincutoff
+
+    def _get_node_dict(self):
+        """
+        Examine network passed in constructor
+        and build a :py:class:`dict` with key
+        set to node 'name' uppercased and value
+        set to id of node
+
+        :return: dict of gene names as key and
+                 node ids as values
+        :rtype: dict
+        """
+        node_dict = {}
+        for nodeid, node in self._netx.nodes(data=True):
+            if 'name' not in node:
+                continue
+            node_dict[node['name'].upper()] = nodeid
+
+        return node_dict
+
+    def _get_list_of_nodeids_for_genes(self, node_dict, genelist):
+        """
+        Given a gene list return a list of node ids from `node_dict`
+        that correspond to genes in `genelist`
+
+        :param node_dict:
+        :type node_dict: dict
+        :param genelist:
+        :type genelist: list
+        :return: list of node ids that correspond to
+                 genes passed in `genelist`
+        :rtype: list
+        """
+        node_id_list = []
+        for gene in genelist:
+            uppercase_gene = gene.upper()
+            if uppercase_gene in node_dict:
+                node_id_list.append(node_dict[uppercase_gene])
+        return node_id_list
+
+    def get_next_subgraph(self):
+        """
+        Generator function that return subgraphs of original network
+        with only nodes and edges for a given go term from
+        the GMT file passed in the constructor.
+
+        NOTE: any isolates (nodes without edges) are removed
+        :param mincutoff: Minimum number of nodes that subgraph
+                          that must exist to return it
+        :type mincutoff: int
+        :return: subgraph of network
+        :rtype: :py:class:`networkx.Graph`
+        """
+        node_dict = self._get_node_dict()
+        with open(self._gmtfile, 'r') as f:
+
+            reader = csv.reader(f, delimiter='\t')
+            try:
+                for row in reader:
+                    logger.info('Generating network ' + str(row[0]))
+                    node_id_list = self.\
+                        _get_list_of_nodeids_for_genes(node_dict,
+                                                       row[2:])
+                    subgraph = self._netx.subgraph(node_id_list)
+
+                    unfrozen_copy_of_subgraph = networkx.Graph(subgraph)
+                    unfrozen_copy_of_subgraph.\
+                        remove_nodes_from(networkx.isolates(subgraph))
+                    node_cnt = len(unfrozen_copy_of_subgraph)
+                    if node_cnt < self._mincutoff:
+                        logger.info(str(row[0]) + ' network has ' +
+                                     str(node_cnt) + ' which is less then ' +
+                                     str(self._mincutoff) + ' nodes. Skipping')
+                        continue
+                    unfrozen_copy_of_subgraph.graph['goterm'] = row[0]
+                    yield unfrozen_copy_of_subgraph
+            except csv.Error as e:
+                logger.error('Error parsing {}, '
+                             'line {}: {}'.format(self._gmtfile,
+                                                  reader.line_num,
+                                                  e))
+                raise e
 
 
 def run(theargs, nice_cx_fac=None,
@@ -252,9 +383,12 @@ def run(theargs, nice_cx_fac=None,
 
     nicecx = nice_cx_fac.get_nice_cx_network()
     netx_network = netxconvertor.get_networkx(nicecx)
-    num_nodes = netx_network.number_of_nodes()
-    graphgenerator = SubGraphGenerator(netx_network, numnetworks=theargs.numnetworks,
-                                       numnodes=theargs.numnodes)
+    if theargs.gmtfile is not None:
+        graphgenerator = GoSubGraphGenerator(netx_network, gmtfile=theargs.gmtfile,
+                                             mincutoff=theargs.mingotermcutoff)
+    else:
+        graphgenerator = SubGraphGenerator(netx_network, numnetworks=theargs.numnetworks,
+                                           numnodes=theargs.numnodes)
     counter = 1
     if not os.path.isdir(theargs.outdir):
         os.makedirs(theargs.outdir, mode=0o755)
@@ -290,6 +424,7 @@ def _write_cx(converter, netx_graph, outdir, counter):
     with open(os.path.join(outdir, str(counter) + '.cx'), 'w') as f:
         json.dump(nicecx.to_cx(), f)
 
+
 def main(args):
     """
     Main entry point for program
@@ -298,7 +433,36 @@ def main(args):
     """
     desc = """
     
-    Generates subgraphs from input graph
+    Generates sub graphs from input graph via two modes 
+    (Default & GO)
+    
+    
+    Default mode:
+    
+    A number (via --numnetworks) of 
+    sub graphs are generated by extracting a random number of selected
+    nodes (via --numnodes) along with all corresponding edges from the
+    input network.
+    Any isolates (nodes no edges) are removed and due to this removal
+    the number of ndoes might be less then --numnodes
+    
+    GO Term mode:
+    
+    Enabled by setting --gmtfile to a GO term TSV file 
+    that can be downloaded here:
+    
+    https://www.gsea-msigdb.org/gsea/msigdb/download_file.jsp?filePath=/msigdb/release/7.0/c5.all.v7.0.symbols.gmt
+    
+    In this mode a sub graph network is generated for each go term
+    selecting nodes that corresponding to genes for that go term from the
+    input network. The gene names are assumed to be on the 
+    'name' attribute of the node. Any isolates (nodes no edges) 
+    are removed. In output CX (written if --writecx added) 
+    a network attribute 'goterm' is added to denote the 
+    corresponding GO term
+
+    TODO: Add support to also examine 'member' list attribute 
+          with *.: prefix removed
 
     """
     theargs = _parse_arguments(desc, args[1:])
