@@ -1,3 +1,4 @@
 .idea/
 bioplex.cx
 __pycache__/
+.DS_Store
