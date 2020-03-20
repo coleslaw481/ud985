@@ -20,6 +20,11 @@ LOG_FORMAT = "%(asctime)-15s %(levelname)s %(relativeCreated)dms " \
              "%(filename)s::%(funcName)s():%(lineno)d %(message)s"
 
 
+class Formatter(argparse.ArgumentDefaultsHelpFormatter,
+                argparse.RawDescriptionHelpFormatter):
+    pass
+
+
 def _parse_arguments(desc, args):
     """
     Parses command line arguments
@@ -27,9 +32,8 @@ def _parse_arguments(desc, args):
     :param args:
     :return:
     """
-    help_fm = argparse.RawDescriptionHelpFormatter
     parser = argparse.ArgumentParser(description=desc,
-                                     formatter_class=help_fm)
+                                     formatter_class=Formatter)
     parser.add_argument('inputcx', help='Input CX file')
     parser.add_argument('outdir', help='Directory where output CX files'
                                        ' will be written.')

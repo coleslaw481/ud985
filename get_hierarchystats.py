@@ -14,6 +14,9 @@ logger = logging.getLogger(__name__)
 LOG_FORMAT = "%(asctime)-15s %(levelname)s %(relativeCreated)dms " \
              "%(filename)s::%(funcName)s():%(lineno)d %(message)s"
 
+class Formatter(argparse.ArgumentDefaultsHelpFormatter,
+                argparse.RawDescriptionHelpFormatter):
+    pass
 
 def _parse_arguments(desc, args):
     """
@@ -22,9 +25,8 @@ def _parse_arguments(desc, args):
     :param args:
     :return:
     """
-    help_fm = argparse.RawDescriptionHelpFormatter
     parser = argparse.ArgumentParser(description=desc,
-                                     formatter_class=help_fm)
+                                     formatter_class=Formatter)
     parser.add_argument('tsvfile', help='Input TSV file')
     parser.add_argument('cdresult', help='Input CDRESULT file')
     parser.add_argument('--includeheader', action='store_true',
