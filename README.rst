@@ -2,6 +2,7 @@ UD-985
 ======
 
 .. _CDAPS: https://github.com/idekerlab/cy-community-detection
+.. _7178ff83-6af8-11ea-bfdc-0ac135e8bacf: https://ndexbio.org/#/network/7178ff83-6af8-11ea-bfdc-0ac135e8bacf
 
 
 
@@ -38,6 +39,7 @@ Design of Neural Network
 .. image:: docs/images/predictclustersgraph.png
         :target: https://ndexbio.org/#/network/7178ff83-6af8-11ea-bfdc-0ac135e8bacf
 
+`7178ff83-6af8-11ea-bfdc-0ac135e8bacf`_
 
 **Description of the inputs**
 
