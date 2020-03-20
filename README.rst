@@ -1,13 +1,14 @@
+UD-985
+======
 
-.. _CDAPS:https://github.com/idekerlab/cy-community-detection
+.. _CDAPS: https://github.com/idekerlab/cy-community-detection
 
-ud985
-=====
+
 
 The Problem
 -----------
 
-Currently the Community Detection App (CDAPS_) allows users
+Currently the Community Detection App (`CDAPS`_) allows users
 to run four community detection apps (OSLOM, CliXO, Infomap, & Louvain)
 but requires the user to invest significant effort to decide on
 optimal parameters to use.
@@ -16,7 +17,7 @@ optimal parameters to use.
 The Ultimate Goal
 -----------------
 
-The ultimate goal is to empower CDAPS_ with features that makes it
+The ultimate goal is to empower `CDAPS`_ with features that makes it
 easier for users to generate "good" hierarchies. (still not sure on definition of "good")
 
 
