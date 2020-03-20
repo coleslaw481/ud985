@@ -1,12 +1,38 @@
+
+.. _CDAPS:https://github.com/idekerlab/cy-community-detection
+
 ud985
 =====
 
-This repo contains a set of scripts with a neural network
-implementation that attempts to predict the number of
+The Problem
+-----------
+
+Currently the Community Detection App (CDAPS_) allows users
+to run four community detection apps (OSLOM, CliXO, Infomap, & Louvain)
+but requires the user to invest significant effort to decide on
+optimal parameters to use.
+
+
+The Ultimate Goal
+-----------------
+
+The ultimate goal is to empower CDAPS_ with features that makes it
+easier for users to generate "good" hierarchies. (still not sure on definition of "good")
+
+
+The Intermediate Goal
+---------------------
+
+This repo contains a set of scripts that attempt to see if
+a neural network approach can be used to predict results of
+a community detection run. More specifically, scripts in
+this repo attempt to predict the number of
 clusters a given community detection algorithm will
 generate for a given graph.
 
-**Here is graphic depiction of the neural network:**
+Design of Neural Network
+------------------------
+
 
 .. image:: docs/images/predictclustersgraph.png
 
@@ -31,8 +57,8 @@ generate for a given graph.
 
 
 
-Requirements
-------------
+Scripts Requirements
+--------------------
 
 * ndex2 client > 3.3.1 & < 4.0.0
 * pandas
