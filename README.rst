@@ -2,22 +2,27 @@ UD-985
 ======
 
 .. _CDAPS: https://github.com/idekerlab/cy-community-detection
-.. _7178ff83-6af8-11ea-bfdc-0ac135e8bacf: https://ndexbio.org/#/network/7178ff83-6af8-11ea-bfdc-0ac135e8bacf
 .. _PyTorch: https://pytorch.org/
 .. _Infomap: https://github.com/idekerlab/cdinfomap
 .. _CliXO: https://github.com/idekerlab/cdclixo
 .. _Louvain: https://github.com/idekerlab/cdlouvain
 .. _OSLOM:  https://github.com/idekerlab/cdoslom
+.. _Bioplex: http://ndexbio.org/#/network/98ba6a19-586e-11e7-8f50-0ac135e8bacf
+
+This repository contains scripts and data needed for the experiments described
+below.
+
+EVERYTHING IN THIS REPO EXPERIMENTAL AND MAY CONTAIN ERRORS. USE AT YOUR OWN RISK.
 
 
 The Problem
 -----------
 
 Currently the Community Detection App (`CDAPS`_) allows users
-to run four community detection apps (OSLOM, CliXO, Infomap, & Louvain)
-but requires the user to invest significant effort to decide on
-optimal parameters to use.
-
+to run four community detection apps wrapped in containers
+(`OSLOM`_, `CliXO`_, `Infomap`_, & `Louvain`_)
+but the app requires the user to invest significant effort
+to decide on optimal parameters to use.
 
 The Ultimate Goal
 -----------------
@@ -48,7 +53,7 @@ networks can be performed.
 Experiment
 ----------
 
-1. Take Bioplex and generate thousands of subnetworks in two ways
+1. Take `Bioplex`_ and generate thousands of subnetworks in two ways
 
    a. By generating random sub networks ``generate_subgraph.py``
 
@@ -76,7 +81,7 @@ Experiment
 
 .. note::
 
-     For `Infomap`_ use some default set of parameters that tend to give good hierarchies.
+         For `Infomap`_ use some default set of parameters that tend to give good hierarchies.
 
 Design of Neural Network
 ------------------------
@@ -84,8 +89,6 @@ Design of Neural Network
 
 .. image:: docs/images/predictclustersgraph.png
         :target: https://ndexbio.org/#/network/7178ff83-6af8-11ea-bfdc-0ac135e8bacf
-
-Above network on `NDEx <https://ndexbio.org/#/network/7178ff83-6af8-11ea-bfdc-0ac135e8bacf>`_
 
 **Description of the inputs**
 
@@ -105,8 +108,6 @@ Above network on `NDEx <https://ndexbio.org/#/network/7178ff83-6af8-11ea-bfdc-0a
 * ``degree stddev``
 
   Standard deviation of degree of all nodes in graph
-
-
 
 Scripts Requirements
 --------------------
