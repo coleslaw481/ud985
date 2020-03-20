@@ -72,10 +72,17 @@ def _setup_logging(args):
 
 def run(theargs):
     """
-    Main flow of processing
+    Using pandas this function reads in the csvfile input file and
+    generates 2 figures with subplots in each figure. The first
+    figure contains scatter subplots and the second figure is a
+    histogram plot for each column of the data.
 
-    :param theargs:
-    :return:
+    NOTE: In this implementation matplotlib will pause after
+    creating the figures
+    so the caller must close the figures for the program to exit
+
+    :param theargs: arguments from ArgParse
+    :return: 0 upon success otherwise failure
     """
     matplotlib.use(theargs.matplotlibgui)
     df = pandas.read_csv(theargs.csvfile, delimiter=',',
@@ -90,69 +97,58 @@ def run(theargs):
     ax.set_xlabel('# of Nodes')
     ax.set_ylabel('# of clusters')
     axes[1, 0].set_title('# of nodes')
-    ax.legend()
-
 
     # edges vs number clusters
     ax = df.plot(ax=axes[0, 0], kind='scatter', x=2, y=6, color='green')
     ax.set_xlabel('# of edges')
     ax.set_ylabel('# of clusters')
     axes[0, 0].set_title('# of edges')
-    ax.legend()
-
 
     # density vs number clusters
     ax = df.plot(ax=axes[1, 1], kind='scatter', x=3, y=6, color='blue')
     ax.set_xlabel('Density')
     ax.set_ylabel('# of clusters')
     axes[1, 1].set_title('Density')
-    ax.legend()
-
 
     # DegreeMean vs number clusters
-    print(df.head())
-    ax = df.plot(ax=axes[1, 2], kind='scatter', x=4, y=6, color='yellow', label='DegreeMean')
+    logger.debug(df.head())
+    ax = df.plot(ax=axes[1, 2], kind='scatter', x=4, y=6, color='yellow')
     ax.set_xlabel('DegreeMean')
     ax.set_ylabel('# of clusters')
     axes[1, 2].set_title('DegreeMean')
-    ax.legend()
-
 
     # number nodes vs number edges
-    print(df.head())
+    logger.debug(df.head())
     ax = df.plot(ax=axes[0, 2], kind='scatter', x=1, y=2, color='pink')
     ax.set_xlabel('# of nodes')
     ax.set_ylabel('# of edges')
     axes[0, 2].set_title('# nodes vs # edges')
-    ax.legend()
 
     # Degree Stddev vs number clusters
     ax = df.plot(ax=axes[0, 1], kind='scatter', x=5, y=6, color='orange')
     ax.set_xlabel('DegreeStddev')
     ax.set_ylabel('# of clusters')
     axes[0, 1].set_title('Degree Stddev')
-    ax.legend()
+
+    # display figure 1 (the scatter plots) and dont pause (block=False)
     plt.show(block=False)
 
-    # histogram plot
+    # histogram plot using pandas feature df.hist that
+    # creates a figure with 6 subplots (one for each column)
     hist = df.hist(column=[1, 2, 3, 4, 5, 6], figsize=(11, 8))
-    print(len(hist))
     hist[0][0].title.set_text('# nodes histogram')
-    # hist[0][0].set_xlabel('# nodes')
-    print(hist[0][0])
-
-    # hist[0][1].set_xlabel('# edges')
+    logger.debug(hist[0][0])
     hist[0][1].title.set_text('# edges histogram')
-    # hist[1][0].set_xlabel('Density')
     hist[1][0].title.set_text('Density histogram')
-    # hist[1][1].set_xlabel('Degree Mean')
     hist[1][1].title.set_text('Degree mean histogram')
-    # hist[2][0].set_xlabel('# Degree Stddev')
     hist[2][0].title.set_text('Degree stddev histogram')
-    # hist[2][1].set_xlabel('# clusters')
     hist[2][1].title.set_text('# clusters histogram')
     hfig = plt.figure(2)
     hfig.suptitle(csvfilename + ' histogram plots', fontsize=16)
+
+    # display figure 2 (histograms) and wait (block=True)
+    logger.info('Displaying figures and '
+                'waiting for user to close figures')
     plt.show(block=True)
 
     return 0
