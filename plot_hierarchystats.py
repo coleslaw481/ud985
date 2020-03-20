@@ -81,57 +81,61 @@ def run(theargs):
     df = pandas.read_csv(theargs.csvfile, delimiter=',',
                          header=None)
     csvfilename = os.path.basename(theargs.csvfile)
+
+    fig, axes = plt.subplots(nrows=2, ncols=3)
+    fig.suptitle(csvfilename + ' plots', fontsize=16)
+    fig.set_size_inches((18, 11))
     # nodes vs number clusters
-    ax = df.plot(kind='scatter', x=1, y=6, color='red')
+    ax = df.plot(ax=axes[1, 0], kind='scatter', x=1, y=6, color='red')
     ax.set_xlabel('# of Nodes')
     ax.set_ylabel('# of clusters')
-    plt.title(csvfilename + '# of nodes')
+    axes[1, 0].set_title('# of nodes')
     ax.legend()
-    plt.show(block=False)
+
 
     # edges vs number clusters
-    ax = df.plot(kind='scatter', x=2, y=6, color='green')
+    ax = df.plot(ax=axes[0, 0], kind='scatter', x=2, y=6, color='green')
     ax.set_xlabel('# of edges')
     ax.set_ylabel('# of clusters')
-    plt.title(csvfilename + ' # of edges')
+    axes[0, 0].set_title('# of edges')
     ax.legend()
-    plt.show(block=False)
+
 
     # density vs number clusters
-    ax = df.plot(kind='scatter', x=3, y=6, color='blue')
+    ax = df.plot(ax=axes[1, 1], kind='scatter', x=3, y=6, color='blue')
     ax.set_xlabel('Density')
     ax.set_ylabel('# of clusters')
-    plt.title(csvfilename + ' density')
+    axes[1, 1].set_title('Density')
     ax.legend()
-    plt.show(block=False)
+
 
     # DegreeMean vs number clusters
     print(df.head())
-    ax = df.plot(kind='scatter', x=4, y=6, color='yellow', label='DegreeMean')
+    ax = df.plot(ax=axes[1, 2], kind='scatter', x=4, y=6, color='yellow', label='DegreeMean')
     ax.set_xlabel('DegreeMean')
     ax.set_ylabel('# of clusters')
-    plt.title(csvfilename + 'degreeMean')
+    axes[1, 2].set_title('DegreeMean')
     ax.legend()
-    plt.show(block=False)
+
 
     # number nodes vs number edges
     print(df.head())
-    ax = df.plot(kind='scatter', x=1, y=2, color='pink')
+    ax = df.plot(ax=axes[0, 2], kind='scatter', x=1, y=2, color='pink')
     ax.set_xlabel('# of nodes')
     ax.set_ylabel('# of edges')
-    plt.title(csvfilename + '# nodes vs # edges')
+    axes[0, 2].set_title('# nodes vs # edges')
     ax.legend()
-    plt.show(block=False)
 
     # Degree Stddev vs number clusters
-    ax = df.plot(kind='scatter', x=5, y=6, color='orange')
+    ax = df.plot(ax=axes[0, 1], kind='scatter', x=5, y=6, color='orange')
     ax.set_xlabel('DegreeStddev')
     ax.set_ylabel('# of clusters')
-    plt.title(csvfilename + ' degreeStddev')
+    axes[0, 1].set_title('Degree Stddev')
     ax.legend()
     plt.show(block=False)
 
-    hist = df.hist(column=[1, 2, 3, 4, 5, 6])
+    # histogram plot
+    hist = df.hist(column=[1, 2, 3, 4, 5, 6], figsize=(11, 8))
     print(len(hist))
     hist[0][0].title.set_text('# nodes histogram')
     # hist[0][0].set_xlabel('# nodes')
@@ -147,7 +151,8 @@ def run(theargs):
     hist[2][0].title.set_text('Degree stddev histogram')
     # hist[2][1].set_xlabel('# clusters')
     hist[2][1].title.set_text('# clusters histogram')
-
+    hfig = plt.figure(2)
+    hfig.suptitle(csvfilename + ' histogram plots', fontsize=16)
     plt.show(block=True)
 
     return 0
