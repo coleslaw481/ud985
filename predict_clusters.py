@@ -5,6 +5,7 @@ import os
 import sys
 import argparse
 import logging
+import datetime
 import numpy as np
 import pandas
 import torch
@@ -22,6 +23,11 @@ LOG_FORMAT = "%(asctime)-15s %(levelname)s %(relativeCreated)dms " \
              "%(filename)s::%(funcName)s():%(lineno)d %(message)s"
 
 
+class Formatter(argparse.ArgumentDefaultsHelpFormatter,
+                argparse.RawDescriptionHelpFormatter):
+    pass
+
+
 def _parse_arguments(desc, args):
     """
     Parses command line arguments
@@ -29,13 +35,18 @@ def _parse_arguments(desc, args):
     :param args:
     :return:
     """
-    help_fm = argparse.RawDescriptionHelpFormatter
     parser = argparse.ArgumentParser(description=desc,
-                                     formatter_class=help_fm)
+                                     formatter_class=Formatter)
     parser.add_argument('--mode', choices=[TRAIN, PREDICT], required=True,
                         help='Denotes which mode to run in')
     parser.add_argument('--model',
                         help='The model to use for prediction')
+    defaultsave = 'predictclusters.' +\
+                  str(datetime.datetime.now().timestamp()) +\
+                  '.pt'
+    parser.add_argument('--save', default=defaultsave,
+                        help='The file to save the trained model to when'
+                             '--mode is ' + TRAIN)
     parser.add_argument('--traindata', help='Path to training '
                                             'dataset (only needed if '
                                             '<mode> is ' + TRAIN + ')')
@@ -48,7 +59,7 @@ def _parse_arguments(desc, args):
                              'this format: https://docs.python.org/3/library/'
                              'logging.config.html#logging-config-fileformat '
                              'Setting this overrides -v parameter which uses '
-                             ' default logger. (default None)')
+                             ' default logger.')
     parser.add_argument('--plotgraphs', action='store_true',
                         help='If set, uses matplotlib to plot graphs')
     parser.add_argument('--matplotlibgui', default='Qt4Agg',
@@ -72,8 +83,7 @@ def _parse_arguments(desc, args):
                              '. Messages are '
                              'output at these python logging levels '
                              '-v = ERROR, -vv = WARNING, -vvv = INFO, '
-                             '-vvvv = DEBUG, -vvvvv = NOTSET (default no '
-                             'logging)')
+                             '-vvvv = DEBUG, -vvvvv = NOTSET')
 
     return parser.parse_args(args)
 
@@ -101,15 +111,33 @@ def _setup_logging(args):
                               disable_existing_loggers=False)
 
 
-class TestNet(nn.Module):
+class PredictClustersNeuralNetwork(nn.Module):
+    """
+    Predict Clusters neural network which takes in
+    four attributes about a network and passes those attributes
+    to an eight node hidden layer and then a four layer hidden
+    layer before outputting a single value ranged between 0 and 1
+    which denotes number of clusters by taking that value and
+    multipling by number of nodes
+    """
 
     def __init__(self):
-        super(TestNet, self).__init__()
+        """
+        Constructor that sets up the 3 layers 4 node input,
+        8 node hidden, and 4 node hidden
+        """
+        super(PredictClustersNeuralNetwork, self).__init__()
         self.fc1 = nn.Linear(4, 8)
         self.fc2 = nn.Linear(8, 4)
         self.fc3 = nn.Linear(4, 1)
 
     def forward(self, x):
+        """
+        Defines how network is linked up. Currently
+        relu is used as activation function
+        :param x:
+        :return:
+        """
         x = self.fc1(x)
         x = torch.relu(x)
         x = self.fc2(x)
@@ -200,6 +228,27 @@ def train_net(theargs, net, trainloader, validloader):
     if theargs.plotgraphs:
         plotgraphs(theargs, epoch_losses, valid_losses)
 
+    save_trained_model(theargs, epoch=theargs.num_epochs,
+                       model=net, optimizer=optimizer, loss=train_loss[-1])
+
+
+def save_trained_model(theargs, epoch=None, model=None,
+                       optimizer=None, loss=None):
+    """
+    Saves model to file specified in theargs.save
+    :param epoch:
+    :param model:
+    :param optimizer:
+    :param loss:
+    :return:
+    """
+    torch.save({
+        'epoch': epoch,
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+        'loss': loss
+    }, theargs.save)
+
 
 def plotgraphs(theargs, epoch_losses, valid_losses):
     """
@@ -249,7 +298,18 @@ class PredictClusterData(torch.utils.data.Dataset):
 
     def _normalize_data(self, df):
         """
+        normalizes data by making the following changes to the data frame (df)
+        passed in. These changes are made in place
 
+        The first column (usually the tsv file name) is dropped
+
+        df[2] aka edges is set to # edges/# nodes ^2
+
+        df[6] aka # clusters is set to # clusters / # nodes
+
+        df[4] aka degree mean is set to degree mean / # nodes
+
+        df[1] # nodes is removed
         :param df:
         :return:
         """
@@ -288,7 +348,7 @@ def run(theargs):
                                               batch_size=theargs.batchsize)
     validloader = torch.utils.data.DataLoader(PredictClusterData(theargs.validationdata),
                                               batch_size=theargs.batchsize)
-    net = TestNet()
+    net = PredictClustersNeuralNetwork()
     if theargs.mode == TRAIN:
         train_net(theargs, net, trainloader, validloader)
     return 0
