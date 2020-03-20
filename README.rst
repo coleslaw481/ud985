@@ -36,6 +36,8 @@ Design of Neural Network
 
 
 .. image:: docs/images/predictclustersgraph.png
+        :target: https://ndexbio.org/#/network/7178ff83-6af8-11ea-bfdc-0ac135e8bacf
+
 
 **Description of the inputs**
 
