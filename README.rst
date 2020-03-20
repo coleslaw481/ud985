@@ -7,6 +7,9 @@ community detection algorithm will generate on a network.
 This is done by feeding the neural network a few pieces of
 information about the network
 
+A graphic depiction of the neural network:
+
+.. image:: docs/images/predictclustersgraph.png
 
 Requirements
 ------------
