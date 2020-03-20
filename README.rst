@@ -54,30 +54,29 @@ Experiment
 
    b. By generating sub networks using GO terms ``generate_gosubgraph.py``
 
-1. Create a neural network in `PyTorch`_ that takes a set
+2. Create a neural network in `PyTorch`_ that takes a set
    of basic network attributes (# nodes, # edges, avg
    node degree etc..) and outputs a single number denoting
    number of clusters that will be generated
 
-1. Generated training data by running `Infomap`_ on networks from step 1
+3. Generated training data by running `Infomap`_ on networks from step 1
 
-1. Need to verify there is not wild variability when feeding same input to `Infomap`_ repeatedly.
+4. Need to verify there is not wild variability when feeding same input to `Infomap`_ repeatedly.
 
-1. Use 80% of data from step 3 to train the neural network
+5. Use 80% of data from step 3 to train the neural network
 
-1. Run prediction on remaining 20%
+6. Run prediction on remaining 20%
 
-1. Assess predictive power
+7. Assess predictive power
 
-1. If successful repeat for `CliXO`_, `Louvain`_, `OSLOM`_ …
+8. If successful repeat for `CliXO`_, `Louvain`_, `OSLOM`_ …
    could also vary parameters and see if prediction holds
    for a new model trained with alternate parameters and
    whether the old models do well
 
-
 .. note::
 
-   For `Infomap`_ use some default set of parameters that tend to give good hierarchies.
+     For `Infomap`_ use some default set of parameters that tend to give good hierarchies.
 
 Design of Neural Network
 ------------------------
