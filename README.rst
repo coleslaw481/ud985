@@ -1,15 +1,35 @@
 ud985
 =====
 
-This repo contains a neural network implementation that
-attempts to predict the number of clusters a given
-community detection algorithm will generate on a network.
-This is done by feeding the neural network a few pieces of
-information about the network
+This repo contains a set of scripts with a neural network
+implementation that attempts to predict the number of
+clusters a given community detection algorithm will
+generate for a given graph.
 
-A graphic depiction of the neural network:
+**Here is graphic depiction of the neural network:**
 
 .. image:: docs/images/predictclustersgraph.png
+
+**Description of the inputs**
+
+* ``# edges / # nodes ^2``
+
+  The number of edges in the graph divided by the number of nodes squared
+
+* ``density``
+
+  Value from this equation described by networkx:
+  https://networkx.github.io/documentation/stable/reference/generated/networkx.classes.function.density.html
+
+* ``degree mean / # nodes``
+
+  Average of degree of all nodes divided by number of nodes in graph
+
+* ``degree stddev``
+
+  Standard deviation of degree of all nodes in graph
+
+
 
 Requirements
 ------------
@@ -19,7 +39,6 @@ Requirements
 * pytorch
 * networkx > 2.3
 * matplotlib
-
 
 Scripts and what they do
 ------------------------
