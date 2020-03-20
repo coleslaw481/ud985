@@ -3,7 +3,11 @@ UD-985
 
 .. _CDAPS: https://github.com/idekerlab/cy-community-detection
 .. _7178ff83-6af8-11ea-bfdc-0ac135e8bacf: https://ndexbio.org/#/network/7178ff83-6af8-11ea-bfdc-0ac135e8bacf
-
+.. _PyTorch: https://pytorch.org/
+.. _Infomap: https://github.com/idekerlab/cdinfomap
+.. _CliXO: https://github.com/idekerlab/cdclixo
+.. _Louvain: https://github.com/idekerlab/cdlouvain
+.. _OSLOM:  https://github.com/idekerlab/cdoslom
 
 
 The Problem
@@ -19,18 +23,61 @@ The Ultimate Goal
 -----------------
 
 The ultimate goal is to empower `CDAPS`_ with features that makes it
-easier for users to generate "good" hierarchies. (still not sure on definition of "good")
+easier for users to generate "useful" clusters/hierarchies.
 
+A “useful” cluster/hierarchy is defined by a set of attributes
+possessed in the resulting cluster/hierarchy. What those attributes
+are is still up for debate.
 
 The Intermediate Goal
 ---------------------
 
-This repo contains a set of scripts that attempt to see if
-a neural network approach can be used to predict results of
-a community detection run. More specifically, scripts in
-this repo attempt to predict the number of
-clusters a given community detection algorithm will
-generate for a given graph.
+Given a set of attributes about a network try to predict
+the number of clusters that a specific algorithm will
+generate when run on the network.
+
+Desired outcome
+---------------
+
+We want to gain insight as to whether a neural network can
+deduce a pattern for predicting outcomes from clustering
+algorithms. If neural networks are successful prediction,
+then experiments with more advanced predictive neural
+networks can be performed.
+
+Experiment
+----------
+
+1. Take Bioplex and generate thousands of subnetworks in two ways
+
+   a. By generating random sub networks ``generate_subgraph.py``
+
+   b. By generating sub networks using GO terms ``generate_gosubgraph.py``
+
+1. Create a neural network in `PyTorch`_ that takes a set
+   of basic network attributes (# nodes, # edges, avg
+   node degree etc..) and outputs a single number denoting
+   number of clusters that will be generated
+
+1. Generated training data by running `Infomap`_ on networks from step 1
+
+1. Need to verify there is not wild variability when feeding same input to `Infomap`_ repeatedly.
+
+1. Use 80% of data from step 3 to train the neural network
+
+1. Run prediction on remaining 20%
+
+1. Assess predictive power
+
+1. If successful repeat for `CliXO`_, `Louvain`_, `OSLOM`_ …
+   could also vary parameters and see if prediction holds
+   for a new model trained with alternate parameters and
+   whether the old models do well
+
+
+.. note::
+
+   For `Infomap`_ use some default set of parameters that tend to give good hierarchies.
 
 Design of Neural Network
 ------------------------
