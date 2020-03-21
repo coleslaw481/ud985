@@ -152,7 +152,8 @@ def predict(net):
     :param net:
     :return:
     """
-    pass
+    net.eval()
+    
 
 
 def get_device(theargs):
@@ -248,6 +249,18 @@ def save_trained_model(theargs, epoch=None, model=None,
         'optimizer_state_dict': optimizer.state_dict(),
         'loss': loss
     }, theargs.save)
+
+
+def load_network_from_model(theargs):
+    """
+    Loads trained model from theargs.model
+    :param theargs:
+    :return: model
+    """
+    net = PredictClustersNeuralNetwork()
+    checkpoint = torch.load(theargs.model)
+    net.load_state_dict(checkpoint['model_state_dict'])
+    return net
 
 
 def plotgraphs(theargs, epoch_losses, valid_losses):
@@ -351,6 +364,10 @@ def run(theargs):
     net = PredictClustersNeuralNetwork()
     if theargs.mode == TRAIN:
         train_net(theargs, net, trainloader, validloader)
+    elif theargs.mode == PREDICT:
+        net = load_network_from_model(theargs)
+        predict(net)
+
     return 0
 
 
