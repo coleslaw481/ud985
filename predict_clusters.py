@@ -8,6 +8,7 @@ import logging
 import datetime
 import numpy as np
 import pandas
+import json
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -50,6 +51,7 @@ def _parse_arguments(desc, args):
     parser.add_argument('--traindata', help='Path to training '
                                             'dataset (only needed if '
                                             '<mode> is ' + TRAIN + ')')
+    parser.add_argument('--predictdata', help='Comma delimited data for input')
     parser.add_argument('--validationdata',
                         help='Path to validation '
                              'dataset (only needed if '
@@ -146,14 +148,27 @@ class PredictClustersNeuralNetwork(nn.Module):
         return x
 
 
-def predict(net):
+def predict(theargs, net):
     """
-
+    Runs prediction
     :param net:
     :return:
     """
     net.eval()
-    
+
+    df = pandas.DataFrame([float(val) for val in theargs.predictdata.split(',')]).T
+    num_nodes = df[0]
+    # normalize edge value
+    df[1] = PredictClusterData.get_normalized_edge_value(num_nodes, df[1])
+
+    # set degree mean to degree mean / num nodes
+    df[3] = PredictClusterData.get_normalized_degree_mean(num_nodes, df[3])
+
+    del df[0]
+    df.reset_index(drop=True, inplace=True)
+    raw_predict = net(torch.Tensor(np.array(df)).view(4))
+    num_clusters = int(round(raw_predict.data[0]*num_nodes))
+    return num_clusters
 
 
 def get_device(theargs):
@@ -309,6 +324,26 @@ class PredictClusterData(torch.utils.data.Dataset):
         """
         return pandas.read_csv(inputfile, delimiter=',', header=None)
 
+    @staticmethod
+    def get_normalized_edge_value(num_nodes, num_edges):
+        """
+
+        :param num_nodes:
+        :param num_edges:
+        :return:
+        """
+        return num_edges / (num_nodes * num_nodes)
+
+    @staticmethod
+    def get_normalized_degree_mean(num_edges, degree_mean):
+        """
+
+        :param num_edges:
+        :param degree_mean:
+        :return:
+        """
+        return degree_mean / num_edges
+
     def _normalize_data(self, df):
         """
         normalizes data by making the following changes to the data frame (df)
@@ -330,13 +365,13 @@ class PredictClusterData(torch.utils.data.Dataset):
         df.reset_index(drop=True, inplace=True)
 
         # set edges to num edges / num nodes^2
-        df[2] = (df[2] / (df[1] * df[1]))
+        df[2] = PredictClusterData.get_normalized_edge_value(df[1], df[2])
 
         # set number of clusters to num clusters / num nodes
         df[6] = (df[6] / df[1])
 
         # set degree mean to degree mean / num nodes
-        df[4] = (df[4] / df[1])
+        df[4] = PredictClusterData.get_normalized_degree_mean(df[1], df[4])
 
         del df[1]
         df.reset_index(drop=True, inplace=True)
@@ -357,16 +392,19 @@ def run(theargs):
     :param theargs:
     :return:
     """
-    trainloader = torch.utils.data.DataLoader(PredictClusterData(theargs.traindata),
-                                              batch_size=theargs.batchsize)
-    validloader = torch.utils.data.DataLoader(PredictClusterData(theargs.validationdata),
-                                              batch_size=theargs.batchsize)
+
     net = PredictClustersNeuralNetwork()
     if theargs.mode == TRAIN:
+        trainloader = torch.utils.data.DataLoader(PredictClusterData(theargs.traindata),
+                                                  batch_size=theargs.batchsize)
+        validloader = torch.utils.data.DataLoader(PredictClusterData(theargs.validationdata),
+                                                  batch_size=theargs.batchsize)
         train_net(theargs, net, trainloader, validloader)
     elif theargs.mode == PREDICT:
         net = load_network_from_model(theargs)
-        predict(net)
+        predict_num_clusters = predict(theargs, net)
+        res = json.dumps({'predictedNumberOfClusters': predict_num_clusters})
+        sys.stdout.write(res + '\n')
 
     return 0
 
