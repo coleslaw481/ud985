@@ -46,12 +46,16 @@ def _parse_arguments(desc, args):
                   str(datetime.datetime.now().timestamp()) +\
                   '.pt'
     parser.add_argument('--save', default=defaultsave,
-                        help='The file to save the trained model to when'
+                        help='The file to save the trained model to when '
                              '--mode is ' + TRAIN)
     parser.add_argument('--traindata', help='Path to training '
                                             'dataset (only needed if '
                                             '<mode> is ' + TRAIN + ')')
-    parser.add_argument('--predictdata', help='Comma delimited data for input')
+    parser.add_argument('--predictdata',
+                        help='Comma delimited data for input which '
+                             'should be in format of <# nodes>,'
+                             '<# edges>,<density>,<degree mean>,'
+                             '<degree stddev>')
     parser.add_argument('--validationdata',
                         help='Path to validation '
                              'dataset (only needed if '
@@ -417,7 +421,26 @@ def main(args):
     """
     desc = """
     
-    Cluster prediction
+    Neural Network cluster predictor
+    
+    This script runs in two modes (dictated by --mode)
+    
+    --mode train
+    
+      Denotes training mode to teach the neural network how
+      to predict number of clusters.
+      
+      This mode requires --traindata and --validationdata be set
+      and --save value denotes where trained model will be written
+      
+    --mode predict
+    
+      Denotes prediction mode and lets caller pass information
+      via --predictdata to get an estimated number of clusters
+      that will be generated. 
+      
+      This mode requires --model and --predictdata flags be set
+    
 
     """
     theargs = _parse_arguments(desc, args[1:])
