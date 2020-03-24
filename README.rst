@@ -137,12 +137,7 @@ Scripts and what they do
 * ``generate_subgraph.py``
 
   Creates networks from an input CX network
-  by randomly picking nodes
-
-* ``generate_gosubgraph.py``
-
-  Creates networks from an input CX network
-  by selecting nodes matching genes for GO terms
+  by randomly picking nodes or selecting nodes matching genes for GO terms
 
 * ``plot_trainindata.py``
 
