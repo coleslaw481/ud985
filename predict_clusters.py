@@ -164,7 +164,7 @@ def predict(theargs, net):
     if len(splitargs) == 7:
         tsvfile = splitargs[0]
         splitargs = splitargs[1:]
-        
+
     df = pandas.DataFrame([float(val) for val in splitargs]).T
     orig_df = df.copy(deep=True)
     num_columns = df.count(axis='columns')[0]
