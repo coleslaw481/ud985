@@ -105,7 +105,7 @@ this **Docker** must also be installed and working
      for Y in `cat test.csv` ; do
          ../predict_clusters.py --mode predict \
             --model bioplexpredictclusters.100epoch.pt \
-            --predict $Y
+            --predict $Y >> ppredict.jsons
 
 
 
@@ -128,5 +128,19 @@ this **Docker** must also be installed and working
      and automatically outputs those in the resulting json
 
 
+  To check the accuracy with ``test.csv`` I ran
+
+  .. code-block::
+
+     ./analyze_predict.py ppredict.jsons
+
+  And got this:
+
+  .. code-block::
+
+     Percent exact matches: 3.0%
+     Percent within 1% : 17.4%
+     Percent within 5% : 71.7%
+     Percent within 10% : 96.1%
 
 
