@@ -14,6 +14,7 @@ with open(sys.argv[1], 'r') as f:
     one_percent_cnt = 0
     five_percent_cnt = 0
     ten_percent_cnt = 0
+    twenty_percent_cnt = 0
     counter = 0
     for line in f:
         predict_json = json.loads(line)
@@ -33,8 +34,11 @@ with open(sys.argv[1], 'r') as f:
             five_percent_cnt += 1
         elif pc_diff <= 0.1:
             ten_percent_cnt += 1
+        elif pc_diff <= 0.2:
+            twenty_percent_cnt += 1
 
 print('Percent exact matches: ' + str(round((exact_cnt / counter)*100, 1)) + '%')
 print('Percent within 1% : ' + str(round(((one_percent_cnt + exact_cnt) / counter)*100, 1)) + '%')
 print('Percent within 5% : ' + str(round(((one_percent_cnt + exact_cnt + five_percent_cnt) / counter)*100, 1)) + '%')
 print('Percent within 10% : ' + str(round(((one_percent_cnt + exact_cnt + five_percent_cnt + ten_percent_cnt) / counter)*100, 1)) + '%')
+print('Percent within 20% : ' + str(round(((one_percent_cnt + exact_cnt + five_percent_cnt + ten_percent_cnt + twenty_percent_cnt) / counter)*100, 1)) + '%')
