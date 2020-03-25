@@ -69,6 +69,11 @@ this **Docker** must also be installed and working
 
       ./extract_trainingdata.py rawinfomapstats.csv experiment1/
 
+
+   .. image:: train_csv_histograms.png
+
+   .. image:: train_csv_plots.png
+
 #. Train
 
    Train the model which will be saved to path specified
