@@ -159,8 +159,23 @@ def predict(theargs, net):
     :return:
     """
     net.eval()
-
-    df = pandas.DataFrame([float(val) for val in theargs.predictdata.split(',')]).T
+    splitargs = theargs.predictdata.split(',')
+    tsvfile = None
+    if len(splitargs) == 7:
+        tsvfile = splitargs[0]
+        splitargs = splitargs[1:]
+        
+    df = pandas.DataFrame([float(val) for val in splitargs]).T
+    orig_df = df.copy(deep=True)
+    num_columns = df.count(axis='columns')[0]
+    actual_clusters = None
+    if num_columns == 6:
+        logger.debug('Found 6 or more columns removing last '
+                     'column cause assuming its'
+                     'raw CSV data')
+        actual_clusters = df[5].values.flat[0]
+        del df[5]
+    logger.debug('Found ' + str(num_columns))
     num_nodes = df[0]
     # normalize edge value
     df[1] = PredictClusterData.get_normalized_edge_value(num_nodes, df[1])
@@ -172,7 +187,17 @@ def predict(theargs, net):
     df.reset_index(drop=True, inplace=True)
     raw_predict = net(torch.Tensor(np.array(df)).view(4))
     num_clusters = int(round(raw_predict.data[0]*num_nodes))
-    return num_clusters
+    result = {'numberNodes': orig_df[0].values.flat[0],
+              'numberEdges': orig_df[1].values.flat[0],
+              'density': orig_df[2].values.flat[0],
+              'degreeMean': orig_df[3].values.flat[0],
+              'degreeStddev': orig_df[4].values.flat[0],
+              'predictedNumberOfClusters': num_clusters}
+    if actual_clusters is not None:
+        result['actualNumberOfClusters'] = int(actual_clusters)
+    if tsvfile is not None:
+        result['inputTSVFile'] = tsvfile
+    return result
 
 
 def get_device(theargs):
@@ -406,8 +431,8 @@ def run(theargs):
         train_net(theargs, net, trainloader, validloader)
     elif theargs.mode == PREDICT:
         net = load_network_from_model(theargs)
-        predict_num_clusters = predict(theargs, net)
-        res = json.dumps({'predictedNumberOfClusters': predict_num_clusters})
+        predout = predict(theargs, net)
+        res = json.dumps(predout)
         sys.stdout.write(res + '\n')
 
     return 0
