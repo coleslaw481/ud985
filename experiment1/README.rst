@@ -2,7 +2,7 @@ Experiment 1
 ============
 
 .. _Bioplex: http://ndexbio.org/#/network/98ba6a19-586e-11e7-8f50-0ac135e8bacf
-
+.. _GO: http://geneontology.org
 This directory contains the results of the experiment with
 99,000 networks from `Bioplex`_
 
@@ -143,4 +143,13 @@ this **Docker** must also be installed and working
      Percent within 5% : 71.7%
      Percent within 10% : 96.1%
 
+  And to see how this predictor works with subgraphs generated
+  by `GO`_ terms on `Bioplex`_ the analysis was run on the 1,204
+  networks generated and got this accuracy using ``bioplex_go_rawinfomapstats.csv``
 
+  .. code-block::
+
+     Percent exact matches: 13.7%
+     Percent within 1% : 14.4%
+     Percent within 5% : 31.6%
+     Percent within 10% : 55.3%
