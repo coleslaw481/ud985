@@ -3,7 +3,7 @@
 import json
 import sys
 
-if len(sys.argv) != 1:
+if len(sys.argv) != 2:
     sys.stderr.write('\nUsage <aggregated prediction json output>\n')
     sys.stderr.write('Simple script that takes '
                      'aggregated output of '
@@ -34,7 +34,7 @@ with open(sys.argv[1], 'r') as f:
         elif pc_diff <= 0.1:
             ten_percent_cnt += 1
 
-print('Percent exact matches: ' + str(round((exact_cnt / counter)*100, 2)))
-print('Percent within 1%: ' + str(round(((one_percent_cnt + exact_cnt) / counter)*100, 2)))
-print('Percent within 5%: ' + str(round(((one_percent_cnt + exact_cnt + five_percent_cnt) / counter)*100, 2)))
-print('Percent within 10%: ' + str(round(((one_percent_cnt + exact_cnt + five_percent_cnt + ten_percent_cnt) / counter)*100, 2)))
+print('Percent exact matches: ' + str(round((exact_cnt / counter)*100, 1)) + '%')
+print('Percent within 1% : ' + str(round(((one_percent_cnt + exact_cnt) / counter)*100, 1)) + '%')
+print('Percent within 5% : ' + str(round(((one_percent_cnt + exact_cnt + five_percent_cnt) / counter)*100, 1)) + '%')
+print('Percent within 10% : ' + str(round(((one_percent_cnt + exact_cnt + five_percent_cnt + ten_percent_cnt) / counter)*100, 1)) + '%')
