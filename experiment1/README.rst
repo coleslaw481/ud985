@@ -142,6 +142,7 @@ this **Docker** must also be installed and working
      Percent within 1% : 17.4%
      Percent within 5% : 71.7%
      Percent within 10% : 96.1%
+     Percent within 20% : 100.0%
 
   And to see how this predictor works with subgraphs generated
   by `GO`_ terms on `Bioplex`_ the analysis was run on the 1,204
@@ -153,3 +154,4 @@ this **Docker** must also be installed and working
      Percent within 1% : 14.4%
      Percent within 5% : 31.6%
      Percent within 10% : 55.3%
+     Percent within 20% : 79.1%
