@@ -16,7 +16,7 @@ this **Docker** must also be installed and working
 
    ``*.csv`` files in this directory are gzip compressed and have ``.gz`` suffix. Be sure to uncompress before using
 
-#. Generate training data
+#. **Generate training data**
 
    This step creates subnetworks as edge files (``*.tsv``) which
    can be done by running this script from base of repo
@@ -29,7 +29,7 @@ this **Docker** must also be installed and working
    The above command will create numbered directories with ``*.tsv`` files
    containing edge lists of networks.
 
-#. Run Infomap on training data
+#. **Run Infomap on training data**
 
    Once the above step is complete run this:
 
@@ -43,7 +43,7 @@ this **Docker** must also be installed and working
 
    The above command will create a bunch of ``*.infomap.csresult`` files
 
-#. Gather stats into single CSV file
+#. **Gather stats into single CSV file**
 
    On a terminal run a for loop like this (can be put in a shell script):
 
@@ -60,7 +60,7 @@ this **Docker** must also be installed and working
       done
 
 
-#. Extract a training dataset
+#. **Extract a training dataset**
 
    Create ``test.csv, train.csv, valid.csv`` files
    under ``experiment1`` directory by running this command:
@@ -74,7 +74,7 @@ this **Docker** must also be installed and working
 
    .. image:: train_csv_plots.png
 
-#. Train
+#. **Train**
 
    Train the model which will be saved to path specified
    by ``--save``
@@ -95,7 +95,7 @@ this **Docker** must also be installed and working
 
    .. image:: training.png
 
-#. Predict
+#. **Predict**
 
    Run prediction using trained model specified by
    ``--model`` flag
